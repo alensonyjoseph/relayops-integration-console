@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
-  Activity, ArrowDownRight, ArrowLeftRight, ArrowRight, ArrowUpRight, BarChart3,
+  Activity, ArrowLeftRight, ArrowRight, ArrowUpRight, BarChart3,
   BookOpen, Check, CheckCheck, ChevronDown, ChevronRight, CircleAlert, CircleCheck,
   ClipboardCheck, Code2, Database, ExternalLink, GitBranch, Github, Layers3,
-  Menu, Package, Play, Plus, RadioTower, RotateCcw, Search, Server,
+  Menu, Package, Play, Plus, RadioTower, RotateCcw, Search,
   ShieldCheck, Sparkles, Terminal, Truck, X, Zap,
   type LucideIcon,
 } from 'lucide-react'
-import { api, ApiFailure } from './lib/api'
+import { api } from './lib/api'
 import { runScenario, type Scenario } from './lib/scenarios'
 import { sampleEvents, sampleMetrics, sampleShipments, scenarioDescriptions } from './data/sample'
 import type { ApiStep, Metrics, OperationalEvent, Shipment, ShipmentStatus, Tab } from './types'
@@ -111,7 +111,6 @@ export default function App() {
   const eventRows=preview ? sampleEvents : events
   const filtered=useMemo(()=>rows.filter(s=>[s.reference,s.partner,s.status].join(' ').toLowerCase().includes(search.toLowerCase())),[rows,search])
   const selectedItem=rows.find(s=>s.reference===selected)
-  const rejected=eventRows.filter(e=>e.outcome==='REJECTED')
   const graphItems=[
     {label:'Accepted',value:m.accepted,color:'var(--teal)'},
     {label:'Rejected',value:m.rejected,color:'var(--coral)'},
