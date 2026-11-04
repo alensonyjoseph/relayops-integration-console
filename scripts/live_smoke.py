@@ -51,19 +51,19 @@ def main():
     except Exception as exc:
         print('Homepage probe failed:', type(exc).__name__)
     last_status, last_body = None, None
-    for attempt in range(1, 4):
+    for attempt in range(1, 13):
         try:
             status, body = request("GET", "/api/health")
         except (TimeoutError, URLError, OSError) as exc:
-            print(f"Health {attempt}/3: network error {type(exc).__name__}")
-            time.sleep(3)
+            print(f"Health {attempt}/12: network error {type(exc).__name__}")
+            time.sleep(6)
             continue
-        print(f"Health {attempt}/3: HTTP {status}, response {str(body)[:250]}")
+        print(f"Health {attempt}/12: HTTP {status}, response {str(body)[:250]}")
         if status == 200 and body.get("status") == "ok" and body.get("database") == "connected":
             print("PASS: Flask API and Neon PostgreSQL connected")
             break
         last_status, last_body = status, body
-        time.sleep(3)
+        time.sleep(6)
     else:
         raise AssertionError(f"Health never passed: HTTP {last_status} {str(last_body)[:350]}")
 

@@ -99,7 +99,11 @@ See [architecture](docs/architecture.md), [regression witness](docs/regression-c
 
 ## Public demo status
 
-The project has a fully implemented local Docker stack and automated CI tests. A **live Vercel deployment has not yet been verified**; do not present an inaccessible deployment as a working demo. A hosted database is optional for source-code review and local execution.
+**[Open the live RelayOps demo](https://relayops-integration-console.vercel.app)** — React/Vite, Flask and a dedicated Neon PostgreSQL database.
+
+**Verified 4 November 2026:** An independent GitHub Actions smoke test reached the public deployment, received HTTP 200 from `/api/health`, created a PostgreSQL-backed shipment, confirmed `201` for an accepted event, `200` for its idempotent replay, `409` for conflicting payload reuse, and verified that the final persisted state remained unchanged. [Inspect the recorded live test](https://github.com/alensonyjoseph/relayops-integration-console/actions/runs/41825263375). The local Docker stack and ordinary CI suite are separate verification paths.
+
+The public demo uses **fictional data only** and is not an authenticated production service.
 
 ## One-time hosted demo setup
 
