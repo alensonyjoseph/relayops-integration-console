@@ -3,7 +3,6 @@ import hashlib
 import json
 from datetime import timezone
 from sqlalchemy import select, func
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from .db import Shipment, Event, AuditEntry
 from .domain import qualify_transition
