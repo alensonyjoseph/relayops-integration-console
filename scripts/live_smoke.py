@@ -22,6 +22,7 @@ def request(method: str, path: str, data: dict | None = None, workspace: str | N
         headers["X-RelayOps-Workspace"] = workspace
     payload = json.dumps(data).encode() if data is not None else None
     req = Request(BASE + path, data=payload, headers=headers, method=method)
+    diagnostic_headers = {}
     try:
         with urlopen(req, timeout=25) as response:
             status = response.status
@@ -29,10 +30,10 @@ def request(method: str, path: str, data: dict | None = None, workspace: str | N
     except HTTPError as err:
         status = err.code
         raw = err.read(4096).decode("utf-8", "replace")
+        diagnostic_headers = {k: err.headers.get(k) for k in ("x-vercel-error", "x-vercel-id", "server", "content-type", "x-matched-path")}
     if status >= 500:
         print(f"Server response: HTTP {status}; body: {raw[:280]}")
-        if 'err' in locals():
-            print('Response diagnostic headers:', {k: err.headers.get(k) for k in ('x-vercel-error','x-vercel-id','server','content-type','x-matched-path')})
+        print('Response diagnostic headers:', diagnostic_headers)
     try:
         return status, json.loads(raw)
     except ValueError:
