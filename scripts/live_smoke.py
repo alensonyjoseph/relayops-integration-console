@@ -29,6 +29,10 @@ def request(method: str, path: str, data: dict | None = None, workspace: str | N
     except HTTPError as err:
         status = err.code
         raw = err.read(4096).decode("utf-8", "replace")
+    if status >= 500:
+        print(f"Server response: HTTP {status}; body: {raw[:280]}")
+        if 'err' in locals():
+            print('Response diagnostic headers:', {k: err.headers.get(k) for k in ('x-vercel-error','x-vercel-id','server','content-type','x-matched-path')})
     try:
         return status, json.loads(raw)
     except ValueError:
@@ -40,20 +44,25 @@ def expect(condition: bool, message: str):
 
 def main():
     print("Testing production API:", BASE)
+    try:
+        home_status, _ = request('GET', '/')
+        print('Homepage HTTP status:', home_status)
+    except Exception as exc:
+        print('Homepage probe failed:', type(exc).__name__)
     last_status, last_body = None, None
-    for attempt in range(1, 13):
+    for attempt in range(1, 4):
         try:
             status, body = request("GET", "/api/health")
         except (TimeoutError, URLError, OSError) as exc:
-            print(f"Health {attempt}/12: network error {type(exc).__name__}")
-            time.sleep(8)
+            print(f"Health {attempt}/3: network error {type(exc).__name__}")
+            time.sleep(3)
             continue
-        print(f"Health {attempt}/12: HTTP {status}, response {str(body)[:250]}")
+        print(f"Health {attempt}/3: HTTP {status}, response {str(body)[:250]}")
         if status == 200 and body.get("status") == "ok" and body.get("database") == "connected":
             print("PASS: Flask API and Neon PostgreSQL connected")
             break
         last_status, last_body = status, body
-        time.sleep(8)
+        time.sleep(3)
     else:
         raise AssertionError(f"Health never passed: HTTP {last_status} {str(last_body)[:350]}")
 
