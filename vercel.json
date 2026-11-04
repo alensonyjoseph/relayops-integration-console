@@ -4,16 +4,31 @@
     "frontend": {
       "root": "frontend/",
       "rewrites": [
-        { "source": "/(.*)", "destination": "/index.html" }
-      ]
+        {
+          "source": "/(.*)",
+          "destination": "/index.html"
+        }
+      ],
+      "framework": "vite"
     },
     "backend": {
       "root": "backend/",
-      "entrypoint": "app:app"
+      "entrypoint": "app:app",
+      "framework": "flask"
     }
   },
   "rewrites": [
-    { "source": "/api/(.*)", "destination": { "service": "backend" } },
-    { "source": "/(.*)", "destination": { "service": "frontend" } }
+    {
+      "source": "/api/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "frontend"
+      }
+    }
   ]
 }
