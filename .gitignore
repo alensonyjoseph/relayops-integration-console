@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+*.egg-info/
+# Node
+node_modules/
+dist/
+.vite/
+# Secrets / local state
+.env
+.env.*
+!.env.example
+.vercel/
+*.db
+*.sqlite
+.DS_Store
+*.log
