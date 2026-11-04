@@ -101,6 +101,29 @@ See [architecture](docs/architecture.md), [regression witness](docs/regression-c
 
 The project has a fully implemented local Docker stack and automated CI tests. A **live Vercel deployment has not yet been verified**; do not present an inaccessible deployment as a working demo. A hosted database is optional for source-code review and local execution.
 
+## One-time hosted demo setup
+
+The Vite and Flask services now deploy together on Vercel. To enable real event
+processing, connect a **new, dedicated PostgreSQL database** using
+**Vercel → RelayOps → Storage → Neon → Create new database → Connect to this project**.
+Neon's integration provides `DATABASE_URL`. Review the selected plan and any
+billing implications before creating a resource.
+
+Add these project environment variables for Production (and Preview if desired):
+
+- `DEMO_MODE=true`
+- `AUTO_MIGRATE_DEMO=true`
+
+The latter explicitly opts in to a **demo-only first-request Alembic migration**,
+protected by a PostgreSQL transaction-level advisory lock. It should be used
+**only with a new database containing synthetic demonstration data**. Redeploy
+after setting the variables. Visit `/api/health` to confirm the backend reports
+`{"status":"ok","database":"connected"}`.
+
+This app has no authentication and must not be connected to a real customer database.
+The public demo is deliberately scoped and capped per browser workspace but not
+hardened against sustained abuse or malicious storage exhaustion.
+
 ## Deploy on Vercel
 
 This repository uses **Vercel Services** to deploy two independent runtimes under one domain. Services is a beta feature and must be enabled for the project; `vercel.json` defines the routing. The API also needs a **dedicated managed PostgreSQL instance** and one-time migrations. Git integration alone is **not enough** to make PostgreSQL appear.

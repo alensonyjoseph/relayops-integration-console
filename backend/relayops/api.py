@@ -14,6 +14,7 @@ from .schemas import ShipmentInput, EventInput
 from .service import (ProcessingError, process_event, resolve_identity_race,
                       snapshot, event_snapshot, MAX_SHIPMENTS)
 from .seed import populate_demo
+from .bootstrap import DemoSchemaInitializer
 
 def make_error(code: str, message: str, status: int):
     return jsonify({"error": {"code": code, "message": message}}), status
@@ -32,6 +33,8 @@ def create_app(database_url: str | None = None) -> Flask:
     engine = create_database_engine(database_url)
     make_session = session_factory(engine) if engine is not None else None
     demo_enabled = os.getenv("DEMO_MODE", "true").lower() == "true"
+    auto_migrate = demo_enabled and os.getenv("AUTO_MIGRATE_DEMO", "false").lower() == "true"
+    initializer = DemoSchemaInitializer(engine) if (auto_migrate and engine is not None) else None
 
     @app.errorhandler(ProcessingError)
     def processing_error(exc):
@@ -50,8 +53,17 @@ def create_app(database_url: str | None = None) -> Flask:
 
     @app.before_request
     def require_database():
-        if request.path.startswith("/api/") and request.path != "/api/health" and make_session is None:
+        if not request.path.startswith("/api/"):
+            return None
+        if request.path != "/api/health" and make_session is None:
             return make_error("DATABASE_NOT_CONFIGURED", "DATABASE_URL is not configured.", 503)
+        if initializer is not None:
+            try:
+                initializer.ensure()
+            except Exception:
+                app.logger.exception("Demo database migration failed")
+                return make_error("DATABASE_SETUP_FAILED", "Unable to initialize the demo database.", 503)
+        return None
 
     @app.get("/api/health")
     def health():
@@ -60,7 +72,7 @@ def create_app(database_url: str | None = None) -> Flask:
         try:
             from sqlalchemy import text
             with engine.connect() as conn:
-                conn.execute(text("SELECT 1"))
+                conn.execute(text("SELECT 1 FROM shipments LIMIT 1"))
             return jsonify({"status": "ok", "database": "connected"})
         except SQLAlchemyError:
             return jsonify({"status": "degraded", "database": "unavailable"}), 503

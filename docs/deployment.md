@@ -13,13 +13,15 @@ PostgreSQL is persistent and **must not be stored in the Vercel function filesys
 3. Vercel Dashboard → Storage / Integrations → add a **new, dedicated PostgreSQL database** (e.g. Neon or Supabase through Marketplace). Do not attach CodeAudit's database.
 4. Connect the database to **this project**. It must provide a compatible PostgreSQL connection string in project environment variables. Name the connection variable `DATABASE_URL`; use an encrypted/sensitive type.
 5. Environment Variables → set `DEMO_MODE` to `true` for this synthetic portfolio demo.
-6. **Run the one-time Alembic migration** against the new database before using the API. See next section.
+6. To avoid using a terminal, set `AUTO_MIGRATE_DEMO=true` for the Vercel project. This explicitly enables one-time Alembic migrations on the first request, using a PostgreSQL advisory transaction lock. **Only use with a fresh, dedicated synthetic demo database.** Otherwise apply the migration manually using the instructions below.
 7. Push/merge the tested branch to `main`, let Vercel deploy, open the deployment, and check `/api/health` returns `{"status":"ok","database":"connected"}`.
 8. Click **Load sample data**, then run **Identifier collision** in Event laboratory. It must show 201 then 409.
 
 If the backend is not ready, the frontend visibly labels itself **Design preview** and displays illustrative sample data. This is not a successful end-to-end deployment.
 
 ## Database migration (one-time setup)
+
+If `AUTO_MIGRATE_DEMO=true` has been configured in Vercel with a **dedicated empty database**, these manual commands are optional. The Flask API will initialise the schema on its first request, after obtaining a transaction-scoped PostgreSQL advisory lock.
 
 The canonical schema is Alembic revision `0001_initial`. Apply it from the backend folder, using a trusted local environment with Python installed:
 
