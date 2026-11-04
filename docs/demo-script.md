@@ -18,7 +18,7 @@ Select Identifier collision. Show valid 201 followed by 409 for a modified paylo
 
 **2:10–2:40 — Verification**
 
-Open \`backend/tests/test_processing.py\`, show the regression test. Point to PostgreSQL uniqueness and row lock logic. Show GitHub Actions CI outcome — only if it has actually passed.
+Open `backend/tests/test_processing.py`, show the regression test. Point to PostgreSQL uniqueness and row lock logic. Show GitHub Actions CI outcome — only if it has actually passed.
 
 **2:40–3:00 — Trade-offs**
 

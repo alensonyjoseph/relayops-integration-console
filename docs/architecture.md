@@ -8,15 +8,15 @@ RelayOps is a bounded, synthetic integration console. It demonstrates engineerin
 
 - **Browser:** React + TypeScript + Vite frontend.
 - **API:** Flask, Pydantic 2 validation, SQLAlchemy 2 sessions, Gunicorn for local containers.
-- **Database:** PostgreSQL 16; Alembic revision \`0001_initial\`.
+- **Database:** PostgreSQL 16; Alembic revision `0001_initial`.
 - **Operations:** GitHub Actions runs tests against PostgreSQL. Docker Compose starts the complete local stack.
-- **Hosted path:** Vercel Services (beta) routes \`/api/*\` to the Python backend and other paths to Vite. Cloud PostgreSQL is external.
+- **Hosted path:** Vercel Services (beta) routes `/api/*` to the Python backend and other paths to Vite. Cloud PostgreSQL is external.
 
 ## Request lifecycle
 
 1. Parse and validate request with Pydantic. Invalid input returns 400 before any mutation.
-2. Acquire a \`SELECT ... FOR UPDATE\` lock on the shipment row, within a transaction.
-3. Search the scoped identity key \`(workspace_id, source, external_id)\`.
+2. Acquire a `SELECT ... FOR UPDATE` lock on the shipment row, within a transaction.
+3. Search the scoped identity key `(workspace_id, source, external_id)`.
 4. If found and fingerprint matches: increase replay count, return 200 and do not apply a second transition.
 5. If found and fingerprint differs: return 409; the shipment must remain unchanged.
 6. If new, check event quota, timestamp ordering, and allowed state transition.
@@ -27,13 +27,13 @@ The unique constraint is a final line of defence. The shipment row lock serialis
 
 ## Shipment state graph
 
-\`\`\`text
+```text
 CREATED ──> PICKED_UP ──> IN_TRANSIT ──> DELIVERED
     │            │
     └────────> CANCELLED <────────────┘ (no route from IN_TRANSIT)
-\`\`\`
+```
 
-The diagram's CANCELLED links originate only at CREATED and PICKED_UP. Both DELIVERED and CANCELLED are terminal states. \`occurred_at\` must be later than the latest accepted event timestamp.
+The diagram's CANCELLED links originate only at CREATED and PICKED_UP. Both DELIVERED and CANCELLED are terminal states. `occurred_at` must be later than the latest accepted event timestamp.
 
 ## Fingerprint contract
 
@@ -43,9 +43,9 @@ The fingerprint is not a signature. A SHA-256 payload hash is not sender authent
 
 ## Database
 
-- \`shipments\` holds the current derived status, version and latest accepted event timestamp.
-- \`events\` holds external identities, fingerprints, requested status, accepted/rejected result and replay count.
-- \`audit_entries\` holds the before/after status decision for each first-seen valid-schema event.
+- `shipments` holds the current derived status, version and latest accepted event timestamp.
+- `events` holds external identities, fingerprints, requested status, accepted/rejected result and replay count.
+- `audit_entries` holds the before/after status decision for each first-seen valid-schema event.
 
 Malformed requests do not create a database audit entry because required identifiers may be absent. Changed-payload identity collisions return 409 without replacing the original event. Future production systems should separately log conflicts in an append-only security/event log without breaking identity uniqueness.
 

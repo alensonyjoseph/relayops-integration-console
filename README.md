@@ -36,37 +36,37 @@ Third-party logistics systems retry delivery events, send stale timestamps and s
 
 Requires Docker and Docker Compose.
 
-\`\`\`bash
+```bash
 git clone https://github.com/alensonyjoseph/relayops-integration-console.git
 cd relayops-integration-console
 docker compose up --build
-\`\`\`
+```
 
 Open **http://localhost:8080**. The Flask API runs on **http://localhost:8000/api/health**. PostgreSQL is automatically started and migrated. Click **Load sample data**, then **Event laboratory**, and run **Identifier collision**.
 
-Stop with Ctrl+C. To remove containers without deleting the persisted local database, run \`docker compose down\`.
+Stop with Ctrl+C. To remove containers without deleting the persisted local database, run `docker compose down`.
 
 ### Development without Docker
 
 1. Start a local PostgreSQL 16 instance and create a dedicated empty database.
-2. From \`backend/\`, install \`pip install -r requirements-dev.txt\`, export \`DATABASE_URL\`, run \`alembic upgrade head\`, and launch \`python app.py\`.
-3. From \`frontend/\`, run \`npm install && npm run dev\`, then open http://localhost:5173.
+2. From `backend/`, install `pip install -r requirements-dev.txt`, export `DATABASE_URL`, run `alembic upgrade head`, and launch `python app.py`.
+3. From `frontend/`, run `npm install && npm run dev`, then open http://localhost:5173.
 
-The Vite development server proxies \`/api\` requests to Flask on port 8000.
+The Vite development server proxies `/api` requests to Flask on port 8000.
 
 ### Test
 
-\`\`\`bash
+```bash
 cd backend
 python -m pytest -v
 python -m ruff check relayops tests
-\`\`\`
+```
 
-By default, tests use temporary SQLite databases for portability. GitHub Actions runs the same tests against a real PostgreSQL 16 service and also runs the actual Alembic upgrade. See \`.github/workflows/ci.yml\`.
+By default, tests use temporary SQLite databases for portability. GitHub Actions runs the same tests against a real PostgreSQL 16 service and also runs the actual Alembic upgrade. See `.github/workflows/ci.yml`.
 
 ## The regression proof
 
-Scenario: send \`event_id=evt-001\`, \`status=PICKED_UP\` and then resend the **same identifier** with \`status=DELIVERED\`.
+Scenario: send `event_id=evt-001`, `status=PICKED_UP` and then resend the **same identifier** with `status=DELIVERED`.
 
 | Action | Expected HTTP | Expected database effect |
 |---|---:|---|
@@ -76,13 +76,13 @@ Scenario: send \`event_id=evt-001\`, \`status=PICKED_UP\` and then resend the **
 | Stale / invalid transition | 422 | Rejection and audit entry |
 | Missing/invalid fields | 400 | No event written |
 
-Source: \`backend/relayops/service.py\`. Regression test: \`test_regression_same_event_id_changed_payload_is_conflict\` in \`backend/tests/test_processing.py\`.
+Source: `backend/relayops/service.py`. Regression test: `test_regression_same_event_id_changed_payload_is_conflict` in `backend/tests/test_processing.py`.
 
 The tests are meant to be run, not merely read; consult the repository's CI checks for verified status.
 
 ## Architecture
 
-\`\`\`text
+```text
 React + TypeScript SPA (Vercel frontend / local Nginx)
        |
        | same-origin /api requests, synthetic workspace UUID
@@ -93,13 +93,17 @@ Flask + Pydantic (Vercel Python Service / Gunicorn)
        |                   → qualify transition → write event + audit
        v
 PostgreSQL (managed cloud database / Docker Compose)
-\`\`\`
+```
 
 See [architecture](docs/architecture.md), [regression witness](docs/regression-case.md), [API contract](docs/api.md), [Vercel deployment](docs/deployment.md), and [three-minute demo script](docs/demo-script.md).
 
+## Public demo status
+
+The project has a fully implemented local Docker stack and automated CI tests. A **live Vercel deployment has not yet been verified**; do not present an inaccessible deployment as a working demo. A hosted database is optional for source-code review and local execution.
+
 ## Deploy on Vercel
 
-This repository uses **Vercel Services** to deploy two independent runtimes under one domain. Services is a beta feature and must be enabled for the project; \`vercel.json\` defines the routing. The API also needs a **dedicated managed PostgreSQL instance** and one-time migrations. Git integration alone is **not enough** to make PostgreSQL appear.
+This repository uses **Vercel Services** to deploy two independent runtimes under one domain. Services is a beta feature and must be enabled for the project; `vercel.json` defines the routing. The API also needs a **dedicated managed PostgreSQL instance** and one-time migrations. Git integration alone is **not enough** to make PostgreSQL appear.
 
 Read **[docs/deployment.md](docs/deployment.md)** before attempting a hosted release. The frontend has an explicitly labelled **sample-data design preview** when its API is not connected; that preview is not evidence of a working backend.
 
